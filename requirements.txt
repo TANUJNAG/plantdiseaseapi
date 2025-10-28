@@ -3,5 +3,3 @@ flask-cors
 tensorflow
 opencv-python
 numpy
-uvicorn
-fastapi
