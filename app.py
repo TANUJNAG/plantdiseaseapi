@@ -34,15 +34,25 @@ def preprocess_image(file, target_size=(224, 224)):
 # Prediction route
 @app.route("/predict", methods=["POST"])
 def predict():
+    print("Request content type:", request.content_type)
+    print("Request files:", request.files)
+
     if "image" not in request.files:
-        return jsonify({"error": "No image uploaded"}), 400
+        return jsonify({
+            "error": "Missing image file. Make sure you're sending 'multipart/form-data' with the key 'image'."
+        }), 400
+
+    img_file = request.files["image"]
+    if img_file.filename == "":
+        return jsonify({"error": "Empty filename. Please upload a valid image."}), 400
 
     try:
-        img = preprocess_image(request.files["image"])
+        img = preprocess_image(img_file)
         pred = model.predict(img)
         predicted_class = int(np.argmax(pred[0]))
-        predicted_label = class_labels[predicted_class]
+        predicted_label = class_labels.get(predicted_class, "Unknown")
         confidence = float(pred[0][predicted_class])
+
         treatment = treatment_recommendations.get(predicted_label, {
             "pesticide": "Not available",
             "fertilizer": "Not available"
@@ -56,11 +66,10 @@ def predict():
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"[ERROR] Prediction failed: {str(e)}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 # Run locally or on Render
-import os
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)

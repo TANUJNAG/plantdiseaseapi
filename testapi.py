@@ -1,7 +1,7 @@
 import requests
 
 # API endpoint
-url = "http://127.0.0.1:5000/predict"
+url = "http://127.0.0.1:10000/predict"
 
 # Path to your test image
 image_path = "pep.jpg"  # Replace with your actual image path
